@@ -18,28 +18,24 @@ if [ "$EUID" -ne 0 ]; then
   exit
 fi
 
-
-    echo -e "${Purple}"
-    cat << "EOF"
-          
-                 
+echo -e "${Purple}"
+cat << "EOF"
 ══════════════════════════════════════════════════════════════════════════════════════
         ____                             _     _                                     
     ,   /    )                           /|   /                                  /   
 -------/____/---_--_----__---)__--_/_---/-| -/-----__--_/_-----------__---)__---/-__-
   /   /        / /  ) /   ) /   ) /    /  | /    /___) /   | /| /  /   ) /   ) /(    
 _/___/________/_/__/_(___(_/_____(_ __/___|/____(___ _(_ __|/_|/__(___/_/_____/___\__
-
 ══════════════════════════════════════════════════════════════════════════════════════
 EOF
-    echo -e "${NC}"
+echo -e "${NC}"
 wk_dir=~/v2rayBot
 config_dir=config
 config_file=config.yml
 git_url="https://github.com/iPmartNetwork/v2rayBot.git"
 
 # check root
-[[ $EUID -ne 0 ]] && echo -e "${red}Fatal error：${plain} Please run this script with root privilege \n " && exit 1
+[[ $EUID -ne 0 ]] && echo -e "${RED}Fatal error：${NC} Please run this script with root privilege \n " && exit 1
 
 # Check OS and set release variable
 if [[ -f /etc/os-release ]]; then
@@ -94,6 +90,8 @@ check_python() {
     pip install -r $wk_dir/requirements.txt
     echo -e "\n${cyan}Edit 'config.yml' file, then restart the server with the 'reboot' command. The bot will start working after the server comes back up.${plain}"
 
+    # Open config.yml with nano for editing
+    nano "$wk_dir/$config_dir/$config_file"
 }
 
 install_base() {
@@ -102,7 +100,7 @@ install_base() {
             echo -e "${Purple}The script does not support CentOS-based operating systems ${plain}\n"
             ;;
         *)
-            apt-get update && apt-get install -y git wget python3
+            apt-get update && apt-get install -y git wget python3 nano
             ;;
     esac
 }
@@ -115,3 +113,29 @@ fi
 
 install_base
 check_python
+
+# Create systemd service
+create_service() {
+    service_file="/etc/systemd/system/v2rayBot.service"
+    echo -e "[Unit]
+Description=V2Ray Bot Service
+After=network.target
+
+[Service]
+ExecStart=/home/$USER/v2rayBot/v2rayBot.sh
+WorkingDirectory=/home/$USER/v2rayBot
+User=$USER
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target" > $service_file
+
+    # Reload systemd and enable the service
+    systemctl daemon-reload
+    systemctl enable v2rayBot.service
+    systemctl start v2rayBot.service
+
+    echo -e "\n${cyan}V2Ray Bot service has been created and started.${plain}"
+}
+
+create_service
