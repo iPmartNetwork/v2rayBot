@@ -67,7 +67,7 @@ check_python() {
 
         (crontab -l; echo "*/3 * * * * python3 ~/v2ray-tel-bot/login.py"; echo "@reboot python3 ~/v2ray-tel-bot/bot.py"; echo "42 2 */2 * * rm -rf ~/v2ray-tel-bot/cookies.pkl") | sort -u | crontab -
     else 
-        echo -e "${cyan}updating python version ${plain}\n"
+        echo -e "${green}updating python version ${plain}\n"
         apt-get install -y software-properties-common && add-apt-repository -y ppa:deadsnakes/ppa && apt-get -y install python3.10 && unlink /usr/bin/python3 && ln -s /usr/bin/python3.10 /usr/bin/python3
 
         curl -sS https://bootstrap.pypa.io/get-pip.py | python3
@@ -89,19 +89,17 @@ check_python() {
 
     pip install --ignore-installed PyYAML
     pip install -r $wk_dir/requirements.txt
-    echo -e "\n${cyan}Edit 'config.yml' file, then restart the server with the 'reboot' command. The bot will start working after the server comes back up.${plain}"
+    echo -e "\n${green}Edit 'config.yml' file, then restart the server with the 'reboot' command. The bot will start working after the server comes back up.${plain}"
 
-    # Open config.yml with nano for editing
-    nano "$wk_dir/$config_dir/$config_file"
 }
 
 install_base() {
     case "${release}" in
         centos|fedora)
-            echo -e "${Purple}The script does not support CentOS-based operating systems ${plain}\n"
+            echo -e "${red}The script does not support CentOS-based operating systems ${plain}\n"
             ;;
         *)
-            apt-get update && apt-get install -y git wget python3 nano
+            apt-get update && apt-get install -y git wget python3 cron libzbar0 zbar-tools
             ;;
     esac
 }
